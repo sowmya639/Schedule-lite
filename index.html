@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedulo Lite | Smart Session Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #43ee8a;
+            --primary-light: #48e7ef;
+            --secondary: #37c980;
+            --success: #4cf0cc;
+            --danger: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--secondary);
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-weight: 300;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .slots-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .slot {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 2px solid transparent;
+            animation: slideUp 0.5s ease-out;
+            animation-fill-mode: backwards;
+        }
+
+        .slot:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .slot.available {
+            border-color: var(--success);
+        }
+
+        .slot.booked {
+            border-color: var(--danger);
+        }
+
+        .slot-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .slot-time {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .slot-status {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .available .slot-status {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+
+        .booked .slot-status {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+        }
+
+        .slot-details {
+            margin: 1rem 0;
+        }
+
+        .booked-by {
+            font-size: 0.9rem;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .booked-by i {
+            color: var(--danger);
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #d91a6d;
+        }
+
+        .btn-secondary {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn i {
+            font-size: 1rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: var(--white);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #cedad5;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Status Message */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background-color: rgba(76, 240, 166, 0.1);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-error {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert i {
+            font-size: 1.2rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            .slots-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Schedulo Lite</span>
+            </div>
+            <p class="subtitle">Book your 1-on-1 mentoring sessions with ease. Select an available slot below to get started.</p>
+        </header>
+
+        <div id="status-message" class="alert" style="display: none;">
+            <i class="fas fa-info-circle"></i>
+            <span id="message-text"></span>
+        </div>
+
+        <div class="slots-container" id="slots-container">
+            <!-- Slots will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="booking-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Book Your Session</h3>
+                <button class="modal-close" id="cancel-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <p id="selected-time" style="font-weight: 600; color: var(--primary); margin-bottom: 1rem;"></p>
+                    <label for="name-input" class="form-label">Your Full Name</label>
+                    <input type="text" id="name-input" class="form-control" placeholder="Enter your name" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-modal-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirm-book">
+                    <span id="confirm-text">Confirm Booking</span>
+                    <span id="spinner" class="spinner" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const slotsContainer = document.getElementById('slots-container');
+        const bookingModal = document.getElementById('booking-modal');
+        const selectedTimeDisplay = document.getElementById('selected-time');
+        const nameInput = document.getElementById('name-input');
+        const confirmBookBtn = document.getElementById('confirm-book');
+        const cancelModalBtns = document.querySelectorAll('#cancel-modal, #cancel-modal-btn');
+        const statusMessage = document.getElementById('status-message');
+        const messageText = document.getElementById('message-text');
+        const confirmText = document.getElementById('confirm-text');
+        const spinner = document.getElementById('spinner');
+
+        let selectedTime = null;
+
+        // Fetch and display slots
+        async function loadSlots() {
+            try {
+                const response = await fetch('http://localhost:3001/api/slots');
+                const slots = await response.json();
+                renderSlots(slots);
+            } catch (error) {
+                showMessage('Failed to load time slots. Please try again later.', 'error');
+            }
+        }
+
+        // Render slots in UI
+        function renderSlots(slots) {
+            slotsContainer.innerHTML = '';
+            
+            slots.forEach((slot, index) => {
+                const slotElement = document.createElement('div');
+                slotElement.className = `slot ${slot.booked ? 'booked' : 'available'}`;
+                slotElement.style.animationDelay = `${index * 0.1}s`;
+                
+                slotElement.innerHTML = `
+                    <div class="slot-header">
+                        <span class="slot-time">${slot.time}</span>
+                        <span class="slot-status">${slot.booked ? 'Booked' : 'Available'}</span>
+                    </div>
+                    ${slot.booked ? 
+                        `<div class="slot-details">
+                            <p class="booked-by">
+                                <i class="fas fa-user"></i>
+                                <span>${slot.name}</span>
+                            </p>
+                            <button class="btn btn-danger" data-time="${slot.time}">
+                                <i class="fas fa-times"></i>
+                                Cancel Booking
+                            </button>
+                        </div>` : 
+                        `<button class="btn btn-primary" data-time="${slot.time}">
+                            <i class="fas fa-bookmark"></i>
+                            Book Now
+                        </button>`}
+                `;
+                
+                slotsContainer.appendChild(slotElement);
+            });
+
+            // Add event listeners to buttons
+            document.querySelectorAll('.btn-primary').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedTime = btn.getAttribute('data-time');
+                    selectedTimeDisplay.textContent = selectedTime;
+                    nameInput.value = '';
+                    bookingModal.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('.btn-danger').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const time = btn.getAttribute('data-time');
+                    if (confirm(`Are you sure you want to cancel the ${time} booking?`)) {
+                        try {
+                            const response = await fetch('http://localhost:3001/api/cancel', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ time })
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                showMessage('Booking canceled successfully!', 'success');
+                                loadSlots();
+                            } else {
+                                showMessage(result.error, 'error');
+                            }
+                        } catch (error) {
+                            showMessage('Error canceling booking. Please try again.', 'error');
+                        }
+                    }
+                });
+            });
+        }
+
+        // Confirm booking
+        confirmBookBtn.addEventListener('click', async () => {
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                showMessage('Please enter your name to book the session', 'error');
+                return;
+            }
+
+            // Show loading state
+            confirmText.style.display = 'none';
+            spinner.style.display = 'block';
+            confirmBookBtn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:3001/api/book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        time: selectedTime, 
+                        name 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Success! Your ${selectedTime} session is booked.`, 'success');
+                    bookingModal.classList.remove('active');
+                    loadSlots();
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please check your connection.', 'error');
+            } finally {
+                // Reset button state
+                confirmText.style.display = 'block';
+                spinner.style.display = 'none';
+                confirmBookBtn.disabled = false;
+            }
+        });
+
+        // Close modal
+        cancelModalBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                bookingModal.classList.remove('active');
+            });
+        });
+
+        // Close modal when clicking outside
+        bookingModal.addEventListener('click', (e) => {
+            if (e.target === bookingModal) {
+                bookingModal.classList.remove('active');
+            }
+        });
+
+        // Show status message
+        function showMessage(message, type) {
+            messageText.textContent = message;
+            statusMessage.className = `alert alert-${type}`;
+            statusMessage.style.display = 'flex';
+            
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Initialize
+        loadSlots();
+    </script>
+</body>
+</html>
